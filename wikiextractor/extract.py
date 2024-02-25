@@ -240,7 +240,7 @@ def compact(text, mark_headers=False):
                 # close extra levels
                 l = 0
                 for c in listLevel:
-                    if l < len(line) and c != line[l]:
+                    if l >= len(line) or c != line[l]:
                         for extra in reversed(listLevel[l:]):
                             page.append(listClose[extra])
                         listLevel = listLevel[:l]
