@@ -931,6 +931,10 @@ class Extractor():
     # Whether to extract interwiki links
     extractInterwiki = False
 
+    ##
+    # List of prefixes for category links
+    categoryPrefix = None
+
     def __init__(self, id, revid, urlbase, title, page):
         """
         :param page: a list of lines.
@@ -983,6 +987,13 @@ class Extractor():
                 interwiki_links.append(m.group(1))
                 return ''
             text = re.sub(r'\{\{INTERWIKI\|(.+)\}\}', _get, text)
+        
+        if self.categoryPrefix:
+            categories = []
+            def _get(m):
+                categories.append(m.group(1))
+                return ''
+            text = re.sub(r'\[\[(?:' + ('|'.join(map(re.escape, self.categoryPrefix))) + r'):(.+?)\]\]', _get, text, flags=re.IGNORECASE)
 
         text = self.clean_text(text, html_safe=html_safe)
 
@@ -994,6 +1005,10 @@ class Extractor():
                 'title': self.title,
                 'text': "\n".join(text)
             }
+            if self.extractInterwiki and interwiki_links:
+                json_data['interwiki'] = interwiki_links
+            if self.categoryPrefix and categories:
+                json_data['category'] = categories
             out_str = json.dumps(json_data)
             out.write(out_str)
             out.write('\n')
