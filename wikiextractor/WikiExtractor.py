@@ -280,7 +280,7 @@ def decode_open(filename, mode='rt', encoding='utf-8'):
         return open(filename, mode, encoding=encoding)
 
 
-def collect_pages(text):
+def collect_pages(text, title_filter=None):
     """
     :param text: the text of a wikipedia file dump.
     """
@@ -326,8 +326,9 @@ def collect_pages(text):
             page.append(line)
         elif tag == '/page':
             colon = title.find(':')
-            if (colon < 0 or (title[:colon] in acceptedNamespaces) and id != last_id and
-                    not redirect and not title.startswith(templateNamespace)):
+            if ((colon < 0 or (title[:colon] in acceptedNamespaces)) and id != last_id and
+                    not redirect and not title.startswith(templateNamespace) and
+                    (not title_filter or title_filter.search(title))):
                 yield (id, revid, title, page)
                 last_id = id
             id = ''
@@ -338,7 +339,7 @@ def collect_pages(text):
 
 
 def process_dump(input_file, template_file, out_file, file_size, file_compress,
-                 process_count, html_safe, expand_templates=True):
+                 process_count, html_safe, expand_templates=True, title_filter=None):
     """
     :param input_file: name of the wikipedia dump file; '-' to read from stdin
     :param template_file: optional file with template definitions.
@@ -451,7 +452,7 @@ def process_dump(input_file, template_file, out_file, file_size, file_compress,
     # than concatenation
 
     ordinal = 0  # page count
-    for id, revid, title, page in collect_pages(input):
+    for id, revid, title, page in collect_pages(input, title_filter=title_filter):
         job = (id, revid, urlbase, title, page, ordinal)
         jobs_queue.put(job)  # goes to any available extract_process
         ordinal += 1
@@ -568,11 +569,12 @@ def main():
                         help="use or create file containing templates")
     groupP.add_argument("--no-templates", action="store_true",
                         help="Do not expand templates")
-    groupP.add_argument("--html-safe", default=True,
+    groupP.add_argument("--html-safe", default=False, action="store_true",
                         help="use to produce HTML safe output within <doc>...</doc>")
     default_process_count = cpu_count() - 1
     parser.add_argument("--processes", type=int, default=default_process_count,
                         help="Number of processes to use (default %(default)s)")
+    parser.add_argument("--title_filter", help="only process articles with titles matching this regex")
 
     groupS = parser.add_argument_group('Special')
     groupS.add_argument("-q", "--quiet", action="store_true",
@@ -644,8 +646,13 @@ def main():
             logging.error('Could not create: %s', output_path)
             return
 
+    if args.title_filter:
+        title_filter = re.compile(args.title_filter)
+    else:
+        title_filter = None
+
     process_dump(input_file, args.templates, output_path, file_size,
-                 args.compress, args.processes, args.html_safe, not args.no_templates)
+                 args.compress, args.processes, args.html_safe, not args.no_templates, title_filter=title_filter)
 
 if __name__ == '__main__':
     main()
