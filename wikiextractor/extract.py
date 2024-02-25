@@ -927,6 +927,10 @@ class Extractor():
     # Obtained from TemplateNamespace
     templatePrefix = ''
 
+    ##
+    # Whether to extract interwiki links
+    extractInterwiki = False
+
     def __init__(self, id, revid, urlbase, title, page):
         """
         :param page: a list of lines.
@@ -972,6 +976,14 @@ class Extractor():
         """
         logging.debug("%s\t%s", self.id, self.title)
         text = ''.join(self.page)
+
+        if self.extractInterwiki:
+            interwiki_links = []
+            def _get(m):
+                interwiki_links.append(m.group(1))
+                return ''
+            text = re.sub(r'\{\{INTERWIKI\|(.+)\}\}', _get, text)
+
         text = self.clean_text(text, html_safe=html_safe)
 
         if self.to_json:

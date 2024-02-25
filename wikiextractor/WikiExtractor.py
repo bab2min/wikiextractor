@@ -571,6 +571,8 @@ def main():
                         help="Do not expand templates")
     groupP.add_argument("--html-safe", default=False, action="store_true",
                         help="use to produce HTML safe output within <doc>...</doc>")
+    groupP.add_argument("--extract_interwiki_links", default=False, action="store_true",
+                        help="extract interwiki links")
     default_process_count = cpu_count() - 1
     parser.add_argument("--processes", type=int, default=default_process_count,
                         help="Number of processes to use (default %(default)s)")
@@ -594,6 +596,7 @@ def main():
     if args.html:
         Extractor.keepLinks = True
     Extractor.to_json = args.json
+    Extractor.extractInterwiki = args.extract_interwiki_links
 
     try:
         power = 'kmg'.find(args.bytes[-1].lower()) + 1
