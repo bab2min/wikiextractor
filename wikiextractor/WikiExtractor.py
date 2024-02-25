@@ -563,6 +563,8 @@ def main():
                         help="produce HTML output, subsumes --links")
     groupP.add_argument("-l", "--links", action="store_true",
                         help="preserve links")
+    groupP.add_argument("--remove-links", action="store_true",
+                        help="remove links even if --html is set")
     groupP.add_argument("-ns", "--namespaces", default="", metavar="ns1,ns2",
                         help="accepted namespaces")
     groupP.add_argument("--templates",
@@ -571,13 +573,13 @@ def main():
                         help="Do not expand templates")
     groupP.add_argument("--html-safe", default=False, action="store_true",
                         help="use to produce HTML safe output within <doc>...</doc>")
-    groupP.add_argument("--extract_interwiki_links", default=False, action="store_true",
+    groupP.add_argument("--extract-interwiki-links", default=False, action="store_true",
                         help="extract interwiki links")
     groupP.add_argument("--category-prefix", nargs='*', help="prefixes of category links to extract")
     default_process_count = cpu_count() - 1
     parser.add_argument("--processes", type=int, default=default_process_count,
                         help="Number of processes to use (default %(default)s)")
-    parser.add_argument("--title_filter", help="only process articles with titles matching this regex")
+    parser.add_argument("--title-filter", help="only process articles with titles matching this regex")
 
     groupS = parser.add_argument_group('Special')
     groupS.add_argument("-q", "--quiet", action="store_true",
@@ -594,7 +596,7 @@ def main():
 
     Extractor.keepLinks = args.links
     Extractor.HtmlFormatting = args.html
-    if args.html:
+    if args.html and not args.remove_links:
         Extractor.keepLinks = True
     Extractor.to_json = args.json
     Extractor.extractInterwiki = args.extract_interwiki_links
