@@ -206,7 +206,7 @@ def load_templates(file, output_file=None):
     page = []
     inText = False
     if output_file:
-        output = open(output_file, 'w')
+        output = open(output_file, 'w', encoding='utf-8')
     for line in file:
         #line = line.decode('utf-8')
         if '<' not in line:  # faster than doing re.search()
